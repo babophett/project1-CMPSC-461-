@@ -8,20 +8,18 @@ class Lexer:
         self.operators = ['==' , '!=' , '<' , '>' , '<=' , '>=']
     # move the lexer position and identify next possible tokens.
     def get_token(self):
-        if self.position >= len(self.code):
-            return None
-
-        if self.position < len(self.code) and (self.code[self.position].isspace() or self.code[self.position] == "\n"):
+       
+        while self.position < len(self.code) and (self.code[self.position].isspace() or self.code[self.position] == "\n"):
             self.position += 1
-            return None, ""
-
+        if self.position >= len(self.code):
+                return 'END', None
         if self.code[self.position].isalpha():  # handles keywords or variables
             start = self.position
             while self.position < len(self.code) and (self.code[self.position].isalnum()):
                 self.position += 1
             token = self.code[start:self.position]
             if token in self.keywords:
-                return 'KEYWORD', token
+                return token.upper(), token
             else:
                 return 'VAR', token
 
@@ -44,29 +42,10 @@ class Lexer:
             if self.code[self.position] == '=':
                 equal = self.code[self.position]
                 self.position += 1
-                return 'EXPR', equal
+                return 'EQUAL', equal
             start = self.position
             self.position += 1
             return 'MATH', self.code[start:self.position]
-        
-        return None
-        
-code = '''a = x + y + z'''
-code = '''
-    x = 1
-    y = 2
-    z = 3
-    a = x + y + z
-    '''
-
-lexer = Lexer(code)
-res = []
-while lexer.position < len(lexer.code):
-    res.append(lexer.get_token())
-
-for token in res:
-    print(token)
- 
         
 
 
@@ -93,33 +72,76 @@ class Parser:
         self.lexer = lexer
         self.current_token = None
 
-    # function to parse the entire program
     def parse(self):
-        pass
+        self.program()
+
     # move to the next token.
     def advance(self):
-        pass
+        self.current_token = self.lexer.get_token()
+
     # parse the one or multiple statements
     def program(self):
-        pass
-        
+        self.advance()
+        while self.current_token is not None:
+
+            self.statement()
+
     # parse if, while, assignment statement.
     def statement(self):
-        pass
+        if self.current_token[0] == "IF":
+            self.if_statement()
+        elif self.current_token[0] == "WHILE":
+            self.while_loop()
+        elif self.current_token[0] == "VAR":
+            self.assignment()
+        
 
     # parse assignment statements
     def assignment(self):
-        pass
-
+        var = self.current_token[1]
+        self.advance()
+        equal = self.current_token[1]
+        arithmetic_expression = self.arithmetic_expression()
+        
+        return f"('{equal}', '{var}', '{arithmetic_expression}')"
     # parse arithmetic experssions
     def arithmetic_expression(self):
-        pass
-   
-    def term(self):
-        pass
+        term1 = self.term()  # Parse the first term
+        while self.current_token is not None and self.current_token[0] == "MATH":
+            operator = self.current_token[1]  # Get the operator
+            self.advance()  # Move past the operator
+            term2 = self.term()  # Parse the next term
+            # Handle the operator here, for example:
+            if operator == '+':
+                expr = f"('{operator}', '{term1}', '{term2}')"
+            elif operator == '-':
+                expr = f"('{operator}', '{term1}', '{term2}')"
+        print(expr)
+        return expr
 
+    def term(self):
+        factor1 = self.factor()  # Parse the first factor
+        while self.current_token is not None and self.current_token[0] == "MATH":
+            operator = self.current_token[1]  # Get the operator
+            self.advance()  # Move past the operator
+            factor2 = self.factor()  # Parse the next factor
+            # Handle the operator here, for example:
+            if operator == '*':
+                expr = f"('{operator}', '{factor1}', '{factor2}')"
+            elif operator == '/':
+                expr = f"('{operator}', '{factor1}', '{factor2}')"
+        print(expr)
+        return expr
     def factor(self):
-        pass
+        if self.current_token[0] == "VAR":
+            return self.current_token[1]
+        if self.current_token[0] == "NUM":
+            return self.current_token[1]
+        else:
+            # Call arithmetic_expression and then advance token
+            arithmetic_expr = self.arithmetic_expression()
+            self.advance()
+            return arithmetic_expr
 
     # parse if statement, you can handle then and else part here.
     # you also have to check for condition.
@@ -133,3 +155,11 @@ class Parser:
 
     def condition(self):
         pass
+code = '''
+    x = 5 + 3
+    '''
+lexer = Lexer(code)
+    
+parser = Parser(lexer)
+ast = parser.parse()
+print(ast)

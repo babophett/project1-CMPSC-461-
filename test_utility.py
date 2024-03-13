@@ -27,6 +27,7 @@ import project1_parser
 
 def test_parser(code, expected_ast_str):
     lexer = project1_parser.Lexer(code)
+    
     parser = project1_parser.Parser(lexer)
     ast = parser.parse()
     ast_str = ''.join(map(str, ast))

@@ -57,7 +57,6 @@ class Lexer:
 
 
 
-
 # Parser
 # Input : lexer object
 # Output: AST program representation.
@@ -120,7 +119,7 @@ class Parser:
     # parse arithmetic experssions
     def arithmetic_expression(self):
         term1 = self.term()  # Parse the first term
-        while self.current_token[1] is not None and self.current_token[0] == "ADDSUB":
+        while self.current_token[0] != "END" and self.current_token[0] == "ADDSUB":
             operator = self.current_token[1]  # Get the operator
             self.advance()  # Move past the operator
             term2 = self.term()  # Parse the next term
@@ -132,7 +131,7 @@ class Parser:
 
     def term(self):
         factor1 = self.factor()  # Parse the first factor
-        while self.current_token[1] is not None and self.current_token[0] == "MULTIDIV":
+        while self.current_token[0] != "END" and self.current_token[0] == "MULTIDIV":
             operator = self.current_token[1]  # Get the operator
             self.advance()  # Move past the operator
             factor2 = self.factor()  # Parse the next factor
@@ -171,13 +170,13 @@ class Parser:
     # possibly make a call to statement?
     def while_loop(self):
         self.advance()
-        whileCondition = self.condition()
+        condition = self.condition()
         self.advance()
-        whileStatement = [self.statement()]
-        whileStatement = f'{whileStatement}'
-        whileStatement = whileStatement.replace('"', '')
+        statement = [self.statement()]
+        statement = f'{statement}'
+        statement = statement.replace('"', '')
 
-        return f"('while', {whileCondition}, {whileStatement})"
+        return f"('while', {condition}, {statement})"
 
 
     def condition(self):
